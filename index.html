@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Domain Checker · all TLDs</title>
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <!-- External CSS -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="checker-card">
+
+    <!-- header -->
+    <div class="brand">
+      <i class="fas fa-compass"></i>
+      <h1>domain</h1>
+      <span class="tld-badge">any TLD</span>
+    </div>
+    <div class="subhead">
+      <i class="fas fa-arrow-right" style="margin-right: 6px; color: #b09a88;"></i>
+      check availability via ICANN RDAP
+    </div>
+
+    <!-- input -->
+    <div class="input-group">
+      <i class="fas fa-globe"></i>
+      <input type="text" id="domainInput" placeholder="example.com" value="" autofocus>
+      <button id="checkBtn"><i class="fas fa-search"></i> Check</button>
+    </div>
+
+    <!-- result -->
+    <div id="resultBox" class="result-box empty">
+      <div class="result-side"></div>
+      <div class="result-content">
+        <i class="fas fa-circle-info"></i>
+        <div class="result-text">
+          <div class="result-domain">ready</div>
+          <div class="result-sub">enter a domain to check availability</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- footer -->
+    <div class="footer-note">
+      <span><i class="fas fa-shield-alt"></i> ICANN RDAP</span>
+      <span><i class="fas fa-clock"></i> real‑time</span>
+      <span><i class="fas fa-globe"></i> all TLDs</span>
+    </div>
+    <div class="tld-hint">
+      <i class="fas fa-asterisk" style="font-size: 0.5rem; opacity: 0.4;"></i>
+      works with most gTLDs &amp; ccTLDs via ICANN
+    </div>
+  </div>
+
+  <!-- External JavaScript -->
+  <script src="script.js"></script>
+</body>
+</html>
