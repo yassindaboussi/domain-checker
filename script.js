@@ -1,10 +1,14 @@
+// script.js
 (function() {
   const domainInput = document.getElementById('domainInput');
   const checkBtn = document.getElementById('checkBtn');
   const resultBox = document.getElementById('resultBox');
   const resultIcon = resultBox.querySelector('.result-content i');
   const resultDomain = resultBox.querySelector('.result-domain');
-  const resultSub = resultBox.querySelector('.result-sub');
+  const resultSub = document.getElementById('resultSub');
+
+  // Mode toggle buttons - purely visual, no functionality
+  // They already have the correct classes from HTML
 
   function setResult(status, icon, mainText, subText = '', extraClass = 'empty') {
     resultBox.classList.remove('available', 'taken', 'error', 'network', 'empty', 'loading');
@@ -22,9 +26,7 @@
     resultSub.textContent = 'querying RDAP registry';
   }
 
-  // —— find correct RDAP endpoint ——
   function getRdapUrl(domain) {
-    // Use ICANN's unified RDAP service (covers most TLDs)
     return `https://rdap.verisign.com/com/v1/domain/${encodeURIComponent(domain)}`;
   }
 
@@ -35,13 +37,11 @@
       return;
     }
 
-    // Basic validation: must contain a dot
     if (!raw.includes('.') || raw.startsWith('.') || raw.endsWith('.')) {
       setResult('error', 'fas fa-triangle-exclamation', 'invalid format', 'include a TLD (e.g. example.com)', 'error');
       return;
     }
 
-    // Try to extract TLD for smarter routing (optional but we keep it simple)
     const domain = raw.toLowerCase();
     const url = getRdapUrl(domain);
     setLoading();
@@ -53,8 +53,6 @@
       });
 
       if (res.status === 200) {
-        const data = await res.json();
-        // Some RDAP responses include "secureDNS" or "events" — we just show taken
         setResult(
           'taken', 
           'fas fa-circle-xmark', 
@@ -102,8 +100,9 @@
     }
   }
 
-  // —— event listeners ——
+  // Event listeners
   checkBtn.addEventListener('click', checkDomain);
+
   domainInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
