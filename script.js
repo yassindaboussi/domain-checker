@@ -129,16 +129,92 @@
     row.querySelector('.bulk-row-status').textContent = statusText;
   }
 
+  // Track all results for filtering + export
+  let bulkResultsData = []; // { domain, status }
+  let activeFilter = 'all';
+
   function updateSummary(counts) {
     const summary = document.getElementById('bulkSummary');
     if (!summary) return;
-    const done = counts.available + counts.taken + counts.error;
-    const total = done + counts.pending;
     summary.innerHTML = `
-      <span class="bulk-badge avail"><i class="fas fa-circle-check"></i> ${counts.available} available</span>
-      <span class="bulk-badge taken"><i class="fas fa-circle-xmark"></i> ${counts.taken} taken</span>
-      ${counts.pending > 0 ? `<span class="bulk-badge pend"><i class="fas fa-spinner"></i> ${counts.pending} checking</span>` : ''}
+      <button class="bulk-filter-btn ${activeFilter==='all'?'active':''}" data-filter="all">
+        All <span>${counts.available + counts.taken + counts.error + counts.pending}</span>
+      </button>
+      <button class="bulk-filter-btn avail ${activeFilter==='available'?'active':''}" data-filter="available">
+        <i class="fas fa-circle-check"></i> Available <span>${counts.available}</span>
+      </button>
+      <button class="bulk-filter-btn taken ${activeFilter==='taken'?'active':''}" data-filter="taken">
+        <i class="fas fa-circle-xmark"></i> Taken <span>${counts.taken}</span>
+      </button>
+      ${counts.pending > 0 ? `<span class="bulk-badge pend"><i class="fas fa-spinner"></i> ${counts.pending}</span>` : ''}
     `;
+    // Attach filter listeners
+    summary.querySelectorAll('.bulk-filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        activeFilter = btn.dataset.filter;
+        applyFilter();
+        updateSummary(counts);
+      });
+    });
+  }
+
+  function applyFilter() {
+    const rows = document.querySelectorAll('.bulk-row');
+    rows.forEach(row => {
+      if (activeFilter === 'all') {
+        row.style.display = '';
+      } else {
+        row.style.display = row.classList.contains(activeFilter) ? '' : 'none';
+      }
+    });
+  }
+
+  function showExportBar() {
+    let bar = document.getElementById('bulkExportBar');
+    if (bar) bar.remove();
+    bar = document.createElement('div');
+    bar.id = 'bulkExportBar';
+    bar.className = 'bulk-export-bar';
+    bar.innerHTML = `
+      <span class="export-label"><i class="fas fa-download"></i> export</span>
+      <button class="export-btn" id="exportTxt"><i class="fas fa-file-lines"></i> TXT</button>
+      <button class="export-btn" id="exportCsv"><i class="fas fa-file-csv"></i> CSV</button>
+      <div class="export-scope">
+        <label><input type="radio" name="exportScope" value="all" checked> all</label>
+        <label><input type="radio" name="exportScope" value="available"> available only</label>
+        <label><input type="radio" name="exportScope" value="taken"> taken only</label>
+      </div>
+    `;
+    bulkResults.insertBefore(bar, document.getElementById('bulkSummary').nextSibling);
+
+    document.getElementById('exportTxt').addEventListener('click', () => doExport('txt'));
+    document.getElementById('exportCsv').addEventListener('click', () => doExport('csv'));
+  }
+
+  function getExportData() {
+    const scope = document.querySelector('input[name="exportScope"]:checked')?.value || 'all';
+    return bulkResultsData.filter(d =>
+      scope === 'all' ? true : d.status === scope
+    );
+  }
+
+  function doExport(type) {
+    const data = getExportData();
+    let content, filename, mime;
+    if (type === 'csv') {
+      content = 'domain,status\n' + data.map(d => `${d.domain},${d.status}`).join('\n');
+      filename = 'domains.csv';
+      mime = 'text/csv';
+    } else {
+      content = data.map(d => `${d.domain}\t${d.status}`).join('\n');
+      filename = 'domains.txt';
+      mime = 'text/plain';
+    }
+    const blob = new Blob([content], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename; a.click();
+    URL.revokeObjectURL(url);
   }
 
   async function checkOneDomain(domain, row, counts) {
@@ -148,21 +224,27 @@
       if (res.status === 200) {
         counts.taken++;
         updateRow(row, 'taken', 'fas fa-circle-xmark', 'taken');
+        bulkResultsData.push({ domain, status: 'taken' });
       } else if (res.status === 404) {
         counts.available++;
         updateRow(row, 'available', 'fas fa-circle-check', 'available');
+        bulkResultsData.push({ domain, status: 'available' });
       } else if (res.status === 429) {
         counts.error++;
         updateRow(row, 'error', 'fas fa-clock', 'rate limited');
+        bulkResultsData.push({ domain, status: 'error' });
       } else {
         counts.error++;
         updateRow(row, 'error', 'fas fa-bug', `error ${res.status}`);
+        bulkResultsData.push({ domain, status: 'error' });
       }
     } catch {
       counts.pending--;
       counts.error++;
       updateRow(row, 'network', 'fas fa-wifi-slash', 'network error');
+      bulkResultsData.push({ domain, status: 'error' });
     }
+    applyFilter();
     updateSummary(counts);
   }
 
@@ -175,11 +257,13 @@
       return;
     }
 
-    // Build UI
+    // Reset
+    bulkResultsData = [];
+    activeFilter = 'all';
     bulkResults.innerHTML = '';
     bulkResults.style.display = '';
 
-    // Summary bar
+    // Summary / filter bar
     const summary = document.createElement('div');
     summary.className = 'bulk-summary';
     summary.id = 'bulkSummary';
@@ -187,7 +271,11 @@
 
     const counts = { available: 0, taken: 0, error: 0, pending: 0 };
 
-    // Create all rows first
+    // Rows container
+    const rowsWrap = document.createElement('div');
+    rowsWrap.id = 'bulkRowsWrap';
+    bulkResults.appendChild(rowsWrap);
+
     const rows = [];
     for (const domain of domains) {
       const row = createRow(domain);
@@ -196,23 +284,25 @@
         row.querySelector('.bulk-row-icon').className = 'fas fa-triangle-exclamation bulk-row-icon';
         row.querySelector('.bulk-row-status').textContent = 'invalid';
         counts.error++;
+        bulkResultsData.push({ domain, status: 'error' });
       } else {
         counts.pending++;
         rows.push({ domain, row });
       }
-      bulkResults.appendChild(row);
+      rowsWrap.appendChild(row);
     }
 
     updateSummary(counts);
 
-    // Check in batches of 3 to avoid rate-limiting
     const BATCH = 3;
     for (let i = 0; i < rows.length; i += BATCH) {
       const batch = rows.slice(i, i + BATCH);
       await Promise.all(batch.map(({ domain, row }) => checkOneDomain(domain, row, counts)));
-      // Small pause between batches
       if (i + BATCH < rows.length) await new Promise(r => setTimeout(r, 300));
     }
+
+    // All done — show export bar
+    showExportBar();
   }
 
   bulkCheckBtn.addEventListener('click', checkBulk);
