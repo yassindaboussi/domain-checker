@@ -24,19 +24,28 @@
       <i class="fas fa-arrow-right" style="margin-right: 6px; color: #b09a88;"></i>
       <span>check availability via ICANN RDAP</span>
       <div class="mode-toggle">
-        <button class="active">Single</button>
-        <button class="inactive">Bulk</button>
+        <button id="modeSingle" class="active">Single</button>
+        <button id="modeBulk" class="inactive">Bulk</button>
       </div>
     </div>
 
-    <!-- input -->
-    <div class="input-group">
+    <!-- single input -->
+    <div id="singleInputWrap" class="input-group">
       <i class="fas fa-globe"></i>
       <input type="text" id="domainInput" placeholder="example.com" autofocus>
       <button id="checkBtn"><i class="fas fa-search"></i> Check</button>
     </div>
 
-    <!-- result -->
+    <!-- bulk input -->
+    <div id="bulkInputWrap" class="bulk-wrap" style="display:none;">
+      <textarea id="bulkInput" placeholder="example.com, mystore.io, coolbrand.net, …" rows="3"></textarea>
+      <div class="bulk-actions">
+        <span class="bulk-hint"><i class="fas fa-info-circle"></i> separate domains with commas</span>
+        <button id="bulkCheckBtn"><i class="fas fa-layer-group"></i> Check all</button>
+      </div>
+    </div>
+
+    <!-- single result -->
     <div id="resultBox" class="result-box empty">
       <div class="result-side"></div>
       <div class="result-content">
@@ -47,6 +56,9 @@
         </div>
       </div>
     </div>
+
+    <!-- bulk results -->
+    <div id="bulkResults" style="display:none;"></div>
 
     <!-- footer -->
     <div class="footer-note">
