@@ -32,5 +32,15 @@ git clone https://github.com/yassindaboussi/domain-checker
 open index.html
 ```
 
-Bulk mode accepts comma-separated domains: `google.com, mystore.io, coolbrand.net`  
-Use `Ctrl + Enter` to trigger bulk check from the keyboard.
+Bulk mode accepts comma-separated domains: `google.com, mystore.io, coolbrand.net`
+
+---
+
+## ⌨️ Keyboard Shortcuts
+
+| Key | Action |
+|---|---|
+| `Enter` | Check domain (single mode) |
+| `Ctrl + Enter` | Switch to bulk mode |
+| `Enter` | Run bulk check (bulk mode) |
+| `Esc` | Back to single mode |
