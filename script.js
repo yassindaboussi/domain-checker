@@ -306,8 +306,23 @@
   }
 
   bulkCheckBtn.addEventListener('click', checkBulk);
-  bulkInput.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); checkBulk(); }
+
+  document.addEventListener('keydown', e => {
+    // Ctrl+Enter — switch to bulk from single
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey) && currentMode === 'single') {
+      e.preventDefault();
+      modeBulk.click();
+    }
+    // Enter — run bulk check when in bulk mode
+    if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey && currentMode === 'bulk') {
+      e.preventDefault();
+      checkBulk();
+    }
+    // Escape — go back to single from bulk
+    if (e.key === 'Escape' && currentMode === 'bulk') {
+      e.preventDefault();
+      modeSingle.click();
+    }
   });
 
 })();

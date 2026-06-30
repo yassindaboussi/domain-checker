@@ -357,6 +357,17 @@ body {
   box-shadow: 0 0 0 4px rgba(180, 155, 135, 0.1);
 }
 
+.bulk-hint kbd {
+  background: #e8dfd6;
+  border: 1px solid #d5c8ba;
+  border-radius: 4px;
+  padding: 0.05rem 0.35rem;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #5a4a3a;
+}
+
 .bulk-actions {
   display: flex;
   align-items: center;
